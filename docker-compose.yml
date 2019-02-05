@@ -42,7 +42,7 @@ services:
             - ./mine/configs:/home/intermine/configs
             - ./mine/.intermine:/home/intermine/.intermine
             - ./mine/logs:/home/intermine/logs
-            - ./mine/scripts:/home/intermine/bin
+            - ./mine/scripts:/home/intermine
             #- ${MINE_PATH}:/home/intermine/mine
             #- ${JBROWSE_DATA}:/home/intermine/jbrowse
             #- ${UTILS}:/home/intermine/src/utils
