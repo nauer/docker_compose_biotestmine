@@ -1,0 +1,158 @@
+# Linux OS
+FROM debian:stretch
+
+# Maintener
+MAINTAINER Norbert Auer <norbert.auer@boku.ac.at>
+
+LABEL vendor="ACIB GmbH"
+LABEL creation-date="2017-03-30"
+LABEL author="Norbert Auer"
+
+# Set User ID to 10000 if not set by the user
+ARG USERID=10000
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    DOCKERIZE_VERSION=v0.6.1 \
+    GRADLE_OPTS="-server -Xmx20g -XX:+UseParallelGC -Xms3g -XX:SoftRefLRUPolicyMSPerMB=1 -XX:MaxHeapFreeRatio=99 -Dorg.gradle.daemon=false" \
+    PATH=/home/intermine/src/utils:$PATH
+
+
+# Create user intermine
+RUN useradd -mu $USERID intermine
+
+#RUN echo "deb http://httpredir.debian.org/debian/ jessie main contrib" >> /etc/apt/sources.list
+
+# Install intermine dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cpanminus \
+        libpath-class-perl \
+        libmoosex-types-path-class-perl \
+        liblog-report-perl \
+        libmoosex-followpbp-perl \
+        libperlio-gzip-perl \
+        wget \
+        ca-certificates \
+        default-jdk \
+        perl \
+        # gradle \ intermine use its own gradle wrapper script
+        maven \
+        git \
+        liblist-moreutils-perl \
+        libwww-perl \
+        libmodule-find-perl \
+        libmoose-perl \
+        libmoosex-role-withoverloading-perl \
+        libmoosex-types-perl \
+        libtext-csv-xs-perl \
+        liburi-perl \
+        libxml-perl \
+        libxml-dom-perl \
+        libtext-glob-perl \
+        liblog-handler-perl \
+        libdatetime-perl \
+        libweb-scraper-perl \
+        libouch-perl \
+        libnumber-format-perl \
+        libperlio-gzip-perl \
+        libperl6-junction-perl \
+        postgresql-client \
+        less \
+        vim \
+        tmux \
+        libc6-dev \
+        libimage-magick-perl \
+        python3-pip \
+        ssmtp \
+        curl \
+        unzip \
+        bc \
+        libpng-dev \
+        libgd-dev \
+        build-essential \
+        nano \
+        nginx \
+        libsaxonb-java \
+        qt5-default \
+        libqt5webkit5-dev \
+        build-essential \
+        xvfb \
+        libxslt-dev \
+        python3-gi \
+        libffi-dev \
+        libssl-dev \
+
+    && apt-get clean
+
+# Install Python 3.7.2
+RUN curl -LO 'https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tar.xz' \
+    && tar -xf Python-3.7.2.tar.xz \
+    && cd Python-3.7.2 \
+    && ./configure --enable-optimizations \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -r Python-3.7.2* \
+    && python3 --version
+
+RUN apt install -y locales && locale-gen en_US.UTF-8
+
+RUN perl - App::cpanminus \
+    && cpanm MooseX::ABC \
+    && cpanm MooseX::FileAttribute \
+    && cpanm XML::Parser::PerlSAX \
+    && cpanm Text::Glob \
+    && cpanm inc::Module::Install \
+    && cpanm File::Copy::Recursive
+
+# datrie patch for snakemake installation in python 3.7 (Can be deleted later when version 0.7.2 is available)
+RUN curl -LO https://github.com/pytries/datrie/archive/0.7.1.tar.gz \
+    && tar xf 0.7.1.tar.gz \
+    && cd datrie-0.7.1 \
+    && pip3 install cython \
+    && ./update_c.sh \
+    && python3.7 setup.py build \
+    && python3.7 setup.py install
+
+# Install Python 3 intermine library
+COPY build/requirements.txt .
+
+RUN pip3 install --upgrade pip \
+    && pip3 install -r requirements.txt
+
+# Install dockerize helper script
+RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
+    && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+
+# Install NCBI's gene2xml
+RUN wget ftp://ftp.ncbi.nlm.nih.gov/asn1-converters/by_program/gene2xml/linux64.gene2xml.gz \
+    && gunzip linux64.gene2xml.gz \
+    && mv linux64.gene2xml* /bin/gene2xml \
+    && chmod a+x /bin/gene2xml
+
+# Install hisat2
+RUN wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip \
+    && unzip -d /usr/local/src hisat2-2.1.0-Linux_x86_64.zip \
+    && ln -s /usr/local/src/hisat2-2.1.0/* /usr/local/bin/
+
+# Install fastagrep
+#RUN git clone --recursive https://github.com/nauer/BI-Army-Knife.git /usr/local/src/BI-Army-Knife \
+#    && cd /usr/local/src/BI-Army-Knife \
+#    && git submodule foreach git pull origin master \
+#    && ln -s /usr/local/src/BI-Army-Knife/src/fastagrep.py /usr/local/bin/fastagrep
+
+#ENV PATH=/home/intermine/BI-Army-Knife/src:/home/intermine/hisat2-2.1.0:$PATH
+
+LABEL version="3.1.1"
+
+# Copy Entryfile
+COPY build/intermine-entry.sh /usr/local/bin/intermine-entry.sh
+
+USER intermine
+
+WORKDIR /home/intermine
+
+# Some missing alias
+RUN echo "alias ll='ls -alF'" >> /home/intermine/.bashrc
+
+CMD ["intermine-entry.sh"]

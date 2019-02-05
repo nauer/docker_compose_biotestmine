@@ -1,0 +1,28 @@
+beautifulsoup4
+certifi
+chardet
+cryptography
+dryscrape
+html5lib
+idna==2.7
+intermine
+keyring
+keyrings.alt
+#lxml
+pyasn1
+pycrypto
+#pygobject  apt-get install python3-gi
+pyxdg
+#requests
+SecretStorage
+six
+snakemake
+urllib3
+webencodings
+webkit-server
+wrapt
+xvfbwrapper
+flask
+ftputil
+biopython #==1.71
+pipenv

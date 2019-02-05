@@ -1,0 +1,85 @@
+version: '3.7'
+
+services:
+    solr:
+      image: solr:${SOLR_VERSION}
+      container_name: biotestmine-solr
+
+      ports:
+        - "${SOLR_PORT}:8983"
+
+      volumes:
+        - ./docker_context/solr:/scripts
+
+      entrypoint:
+        - docker-entrypoint.sh
+        - /scripts/solr-intermine
+        - ${DB_NAME}
+
+    # The main container which is building the CHOmine
+    build:
+        container_name: biotestmine-build
+        build:
+            context: docker_context
+            dockerfile: Dockerfile.chomine.build
+            args:
+                USERID: ${USERID}
+
+        environment:
+            - PSQL_DB_NAME=${PSQL_DB_NAME}
+            - PSQL_USER=${PSQL_USER}
+            - PSQL_PWD=${PSQL_PWD}
+            - PGPORT=${PSQL_PORT}
+            - TOMCAT_USER=${TOMCAT_USER}
+            - TOMCAT_PWD=${TOMCAT_PWD}
+            #- INTERMINE_VERSION=${INTERMINE_VERSION}
+            - DB_NAME=${DB_NAME}
+            #- THEME=${THEME}
+            #- TAXON_ID=${TAXON_ID}
+
+        volumes:
+            - ./mine/data:/home/intermine/data
+            - ./mine/configs:/home/intermine/configs
+            - ./mine/.intermine:/home/intermine/.intermine
+            - ./mine/logs:/home/intermine/logs
+            - ./mine/scripts:/home/intermine/bin
+            #- ${MINE_PATH}:/home/intermine/mine
+            #- ${JBROWSE_DATA}:/home/intermine/jbrowse
+            #- ${UTILS}:/home/intermine/src/utils
+            #- ${BIO_SOURCES}:/home/intermine/mine/bio-sources
+
+        depends_on:
+            - "postgres"
+            #- "tomcat"
+            - "solr"
+        #ports:
+        #    - "8081:8081"
+
+    # Webserver for the Intermine instance
+    tomcat:
+        image: tomcat:${TOMCAT_VERSION}
+        container_name: biotestmine-tomcat
+        #domainname: chomine.boku.ac.at
+        ports:
+            - "${TOMCAT_PORT}:8080"
+        volumes:
+            - ./docker_context/tomcat/context.xml:/usr/local/tomcat/conf/context.xml
+            - ./docker_context/tomcat/server.xml:/usr/local/tomcat/conf/server.xml
+            - ./docker_context/tomcat/tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+            - ./docker_context/tomcat/manager.xml:/usr/local/tomcat/conf/Catalina/localhost/manager.xml
+
+        depends_on:
+            - "postgres"
+
+    # Database for the Intermine interactions
+    postgres:
+        image: postgres:${PSQL_VERSION}
+        container_name: biotestmine-postgres
+        ports:
+            - "${PSQL_PORT}:${PSQL_PORT}"
+        command: postgres -c config_file=/etc/postgresql.conf -p ${PSQL_PORT}
+        volumes:
+            - ./docker_context/postgres/init_postgresql.sh:/docker-entrypoint-initdb.d/init_postgresql.sh
+            - ./docker_context/postgres/postgresql.conf:/etc/postgresql.conf
+        environment:
+            - PGPORT=${PSQL_PORT}

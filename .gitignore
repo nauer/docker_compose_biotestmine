@@ -1,3 +1,15 @@
+# Mine Config
+.intermine/
+
+# Data
+data/
+
+# Log
+logs/
+
+# Pycharm IDE
+.idea/
+
 # Compiled class file
 *.class
 
