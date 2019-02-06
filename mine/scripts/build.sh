@@ -42,7 +42,7 @@ if [ ! -f /home/intermine/biotestmine/project.xml ]; then
     sed -i 's/DATA_DIR/\/home\/intermine\/data/g' /home/intermine/biotestmine/project.xml
 fi
 
-if [ ! -f /home/intermine/biotestmine/project.xml ]; then
+if [ ! -d /home/intermine/data/malaria ]; then
     echo "$(date +%Y/%m/%d-%H:%M) Copy malria-data to ~/data" >> /home/intermine/logs/progress
     cp /home/intermine/biotestmine/data/malaria-data.tar.gz /home/intermine/data/
     cd /home/intermine/data/
