@@ -14,7 +14,7 @@ docker-compose up
 
 # Run Build Script
 ~~~bash
-docker-compose exec build build.sh
+docker-compose exec build ./build.sh
 ~~~
 
 # Browse your Mine
