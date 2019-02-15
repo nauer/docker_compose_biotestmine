@@ -6,9 +6,14 @@ Intermine's biotestmine complete build within Docker containers
 git clone git@github.com:nauer/docker_compose_biotestmine.git
 ~~~
 
-# Start Container
+# Build Container
 ~~~bash
 cd docker_compose_biotestmine
+docker-compose build
+~~~
+
+# Start Container
+~~~bash
 docker-compose up
 ~~~
 
