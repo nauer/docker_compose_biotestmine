@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 cd /home/intermine/
 
 # Empty log
@@ -29,9 +32,12 @@ if [ ! -f /home/intermine/.intermine/biotestmine.properties ]; then
     sed -i "s/PSQL_PWD/$PSQL_PWD/g" /home/intermine/.intermine/biotestmine.properties
     sed -i "s/TOMCAT_USER/$TOMCAT_USER/g" /home/intermine/.intermine/biotestmine.properties
     sed -i "s/TOMCAT_PWD/$TOMCAT_PWD/g" /home/intermine/.intermine/biotestmine.properties
-    sed -i "s/webapp.deploy.url=http:\/\/localhost:8080/webapp.deploy.url=http:\/\/tomcat:8080/g" /home/intermine/.intermine/biotestmine.properties
+    sed -i "s/webapp.deploy.url=http:\/\/localhost:8080/webapp.deploy.url=http:\/\/tomcat:$TOMCAT_PORT/g" /home/intermine/.intermine/biotestmine.properties
     sed -i "s/serverName=localhost/serverName=postgres:$PGPORT/g" /home/intermine/.intermine/biotestmine.properties
-    webapp.deploy.url=http://tomcat:8080
+
+
+    echo "project.rss=http://localhost:$WORDPRESS_PORT/?feed=rss2" >> /home/intermine/.intermine/biotestmine.properties
+    echo "links.blog=https://localhost:$WORDPRESS_PORT" >> /home/intermine/.intermine/biotestmine.properties
 fi
 
 if [ ! -f /home/intermine/biotestmine/project.xml ]; then
@@ -108,4 +114,5 @@ echo "$(date +%Y/%m/%d-%H:%M) Gradle: build userDB" >> /home/intermine/logs/prog
 ./gradlew buildUserDB --stacktrace >> /home/intermine/logs/progress
 
 echo "$(date +%Y/%m/%d-%H:%M) Gradle: build webapp" >> /home/intermine/logs/progress
-./gradlew cargoDeployRemote  --stacktrace >> /home/intermine/logs/progress
+./gradlew clean
+./gradlew cargoRedeployRemote  --stacktrace >> /home/intermine/logs/progress

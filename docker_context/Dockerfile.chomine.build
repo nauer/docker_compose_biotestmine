@@ -12,8 +12,7 @@ LABEL author="Norbert Auer"
 ARG USERID=10000
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    DOCKERIZE_VERSION=v0.6.1 \
-    GRADLE_OPTS="-server -Xmx20g -XX:+UseParallelGC -Xms3g -XX:SoftRefLRUPolicyMSPerMB=1 -XX:MaxHeapFreeRatio=99 -Dorg.gradle.daemon=false" \
+    DOCKERIZE_VERSION=v0.6.1 \    
     PATH=/home/intermine/src/utils:$PATH
 
 

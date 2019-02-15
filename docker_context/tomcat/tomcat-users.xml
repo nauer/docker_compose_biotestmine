@@ -36,5 +36,5 @@
     <role rolename="manager-jmx"/>
     <role rolename="manager-gui"/>
     <role rolename="manager-script"/>
-    <user username="tomicat" password="kakado3" roles="tomcat,manager-jmx,manager-gui,manager-script"/>
+    <user username="tomicat" password="kaKado3" roles="tomcat,manager-jmx,manager-gui,manager-script"/>
 </tomcat-users>
